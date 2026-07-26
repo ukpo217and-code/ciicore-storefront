@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BusinessPulse Storefront</title>
+<meta name="description" content="Every business on BusinessPulse gets a live digital storefront that updates automatically through WhatsApp." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board:#14213D; --board-2:#1D2E52;
+    --gold:#F2A93B; --gold-dim:#C88A2A;
+    --paper:#FBF7EE; --ink:#201A17; --ink-soft:#5B554E; --line:#E7DFCF;
+    --open:#3F7D5C; --tag:#E85D3D;
+    --radius:14px; --shadow: 0 10px 30px -12px rgba(20,33,61,.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);font-family:"Instrument Sans", system-ui, sans-serif;line-height:1.5;}
+  .display{font-family:"Bricolage Grotesque", system-ui, sans-serif;}
+  .mono{font-family:"Space Mono", ui-monospace, monospace;}
+  a{color:inherit;}
+  img{display:block;max-width:100%;}
+  button, input{font-family:inherit;}
+  [hidden]{display:none !important;}
+
+  /* ============ SHARED: search ============ */
+  .search-box{
+    display:flex;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:12px;padding:6px;box-shadow:var(--shadow);
+  }
+  .search-box input{
+    flex:1;border:none;outline:none;padding:10px 12px;font-size:15px;background:transparent;color:var(--ink);
+  }
+  .search-box button{
+    background:var(--board);color:var(--gold);border:none;border-radius:8px;
+    padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;
+  }
+  .search-box button:hover{background:var(--board-2);}
+  .search-results{margin-top:14px;display:grid;gap:8px;}
+  .search-result{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    text-decoration:none;color:var(--ink);
+  }
+  .search-result:hover{border-color:var(--gold-dim);}
+  .search-result .r-name{font-weight:600;font-size:14px;}
+  .search-result .r-meta{font-size:12px;color:var(--ink-soft);}
+  .search-empty{color:var(--ink-soft);font-size:13px;padding:10px 2px;}
+
+  /* ============ LANDING PAGE ============ */
+  #landing .hero{
+    background:linear-gradient(180deg, var(--board) 0%, var(--board-2) 100%);
+    color:var(--paper);padding:64px 20px 100px;text-align:center;
+  }
+  #landing .eyebrow{
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);
+    margin-bottom:16px;
+  }
+  #landing h1{
+    font-family:"Bricolage Grotesque", system-ui, sans-serif;
+    font-size:clamp(32px,7vw,48px);font-weight:700;margin:0 0 16px;letter-spacing:-0.02em;
+  }
+  #landing .sub{
+    max-width:520px;margin:0 auto 32px;color:rgba(251,247,238,.8);font-size:16px;
+  }
+  #landing .hero-search{max-width:480px;margin:0 auto;}
+  #landing .hero-search .search-results{text-align:left;}
+  #landing .ctas{
+    display:flex;gap:12px;justify-content:center;margin-top:22px;flex-wrap:wrap;
+  }
+  .btn-primary, .btn-secondary{
+    display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:14px;
+    padding:12px 22px;border-radius:999px;text-decoration:none;
+  }
+  .btn-primary{background:var(--gold);color:var(--board);}
+  .btn-secondary{background:transparent;color:var(--paper);border:1px solid rgba(251,247,238,.4);}
+
+  .wrap{max-width:640px;margin:0 auto;padding:0 20px;}
+
+  #landing .how{margin-top:-56px;position:relative;z-index:2;}
+  .how-card{
+    background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:28px 24px;
+  }
+  .how-card h2{
+    font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);
+    margin:0 0 18px;font-weight:700;
+  }
+  .how-steps{display:grid;gap:16px;}
+  .how-step{display:flex;gap:14px;align-items:flex-start;}
+  .how-step .n{
+    flex-shrink:0;width:26px;height:26px;border-radius:50%;background:var(--board);color:var(--gold);
+    font-family:"Space Mono",monospace;font-size:13px;font-weight:700;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .how-step .t{font-size:14px;color:var(--ink-soft);}
+  .how-step .t strong{color:var(--ink);}
+
+  #landing footer{padding:36px 20px 44px;text-align:center;font-size:12px;color:var(--ink-soft);}
+
+  /* ============ NOT FOUND ============ */
+  #notfound{
+    min-height:70vh;display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  #notfound .box{max-width:420px;text-align:center;}
+  #notfound .glyph{font-size:40px;margin-bottom:8px;}
+  #notfound h1{font-family:"Bricolage Grotesque",sans-serif;font-size:24px;margin:0 0 8px;}
+  #notfound p{color:var(--ink-soft);font-size:14px;margin:0 0 22px;}
+  #notfound .search-box{margin-bottom:14px;}
+  .link-home{font-size:13px;font-weight:600;color:var(--gold-dim);text-decoration:none;}
+
+  /* ============ LOADING / ERROR ============ */
+  #state-msg{min-height:60vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--ink-soft);font-size:15px;}
+
+  /* ============ STORE PAGE (unchanged from before) ============ */
+  body.has-cta{padding-bottom:84px;}
+  #store .hero{background:linear-gradient(180deg, var(--board) 0%, var(--board-2) 100%);color:var(--paper);padding:28px 20px 64px;position:relative;}
+  #store .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
+  .brand-badge{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);opacity:.85;}
+  .verified-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;background:rgba(242,169,59,.15);color:var(--gold);border:1px solid rgba(242,169,59,.4);padding:4px 10px;border-radius:999px;}
+  .cover-wrap{margin-top:18px;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/9;background:var(--board-2);box-shadow:var(--shadow);}
+  .cover-wrap img{width:100%;height:100%;object-fit:cover;}
+  .cover-wrap.empty{display:flex;align-items:center;justify-content:center;color:rgba(251,247,238,.35);font-size:13px;}
+  .identity{margin-top:-44px;padding:0 20px;position:relative;z-index:2;display:flex;align-items:flex-end;gap:14px;}
+  .logo{width:84px;height:84px;border-radius:16px;background:var(--paper);border:4px solid var(--paper);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:28px;font-weight:700;color:var(--board);flex-shrink:0;}
+  .logo img{width:100%;height:100%;object-fit:cover;}
+  .identity h1{margin:0 0 2px;font-size:clamp(24px,6vw,32px);font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
+  .identity .meta{font-size:13px;color:var(--ink-soft);}
+  section{margin-top:34px;}
+  .section-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;}
+  .section-head h2{font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:0;font-weight:700;}
+  .about p{color:var(--ink-soft);font-size:15px;margin:0;}
+  .info-grid{display:grid;gap:10px;font-size:14px;color:var(--ink-soft);}
+  .info-row{display:flex;gap:10px;}
+  .info-row .k{flex-shrink:0;width:92px;color:var(--ink);font-weight:600;font-size:13px;}
+  .gallery{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none;}
+  .gallery::-webkit-scrollbar{display:none;}
+  .gallery img{height:140px;width:180px;object-fit:cover;border-radius:10px;flex-shrink:0;box-shadow:var(--shadow);transform:rotate(-1.2deg);}
+  .gallery img:nth-child(even){transform:rotate(1deg);}
+  .promo{background:var(--tag);color:var(--paper);border-radius:10px;padding:14px 16px;margin-bottom:10px;position:relative;overflow:hidden;}
+  .promo::before,.promo::after{content:"";position:absolute;width:16px;height:16px;background:var(--paper);border-radius:50%;top:50%;transform:translateY(-50%);}
+  .promo::before{left:-8px;} .promo::after{right:-8px;}
+  .promo-title{font-weight:700;font-size:15px;}
+  .promo-discount{font-size:13px;opacity:.9;margin-top:2px;}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);padding:14px 12px 16px;position:relative;}
+  .card .name{font-size:14px;font-weight:600;margin:0 0 6px;}
+  .card{position:relative;transition:border-color .15s ease, background .15s ease;}
+  .card.selected{border-color:var(--gold-dim);background:#FFFBF0;}
+  .add-row{display:flex;align-items:center;justify-content:space-between;margin-top:10px;gap:8px;}
+  .add-btn{
+    border:1px solid var(--line);background:#fff;color:var(--ink);font-size:12px;font-weight:700;
+    padding:6px 12px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  }
+  .add-btn.is-selected{background:var(--board);color:var(--gold);border-color:var(--board);}
+  .add-btn:hover{border-color:var(--gold-dim);}
+  .price-tag{display:inline-block;background:var(--board);color:var(--gold);font-size:13px;padding:3px 9px 3px 10px;border-radius:0 4px 4px 0;position:relative;transform:rotate(-2deg);}
+  .price-tag::before{content:"";position:absolute;left:-5px;top:50%;transform:translateY(-50%);width:8px;height:8px;background:var(--paper);border-radius:50%;border:2px solid var(--board);}
+  .stock{font-size:11px;color:var(--ink-soft);margin-top:8px;}
+  .empty-note{color:var(--ink-soft);font-size:13px;border:1px dashed var(--line);border-radius:10px;padding:16px;text-align:center;}
+  .cta-bar{position:fixed;bottom:0;left:0;right:0;background:var(--board);padding:12px 20px;box-shadow:0 -8px 24px rgba(20,33,61,.25);display:flex;justify-content:center;}
+  .cta-bar a{display:flex;align-items:center;gap:8px;justify-content:center;background:var(--gold);color:var(--board);font-weight:700;font-size:15px;border-radius:999px;padding:12px 22px;width:100%;max-width:600px;text-decoration:none;}
+  #store footer{margin-top:48px;padding:24px 20px;text-align:center;font-size:12px;color:var(--ink-soft);}
+
+  @media (prefers-reduced-motion:no-preference){ .card, .promo, .gallery img{transition:transform .18s ease;} .card:hover{transform:translateY(-2px);} }
+  @media (prefers-reduced-motion:reduce){ .gallery img{transform:none !important;} }
+</style>
+</head>
+<body>
+
+<div id="state-msg" hidden>Loading storefront…</div>
+
+<!-- ============ LANDING ============ -->
+<div id="landing" hidden>
+  <div class="hero">
+    <div class="eyebrow">BusinessPulse</div>
+    <h1>Every business deserves<br>a storefront that never sleeps.</h1>
+    <p class="sub">Register on WhatsApp and get a live public storefront in minutes — add products, update prices, run promotions, all from chat. No dashboard, no app to learn.</p>
+    <div class="hero-search">
+      <form class="search-box" id="landing-search-form">
+        <input type="text" id="landing-search-input" placeholder="Search for a business or shop name…" autocomplete="off">
+        <button type="submit">Find a Business</button>
+      </form>
+      <div class="search-results" id="landing-search-results"></div>
+    </div>
+    <div class="ctas">
+      <a class="btn-primary" href="#" id="register-cta">Register Your Business →</a>
+    </div>
+  </div>
+
+  <div class="wrap how">
+    <div class="how-card">
+      <h2>How it works</h2>
+      <div class="how-steps">
+        <div class="how-step"><span class="n">1</span><span class="t"><strong>Message us on WhatsApp</strong> — reply REGISTER and answer a few quick questions about your business.</span></div>
+        <div class="how-step"><span class="n">2</span><span class="t"><strong>Your storefront goes live instantly</strong> — a public page customers can browse and share, no setup required.</span></div>
+        <div class="how-step"><span class="n">3</span><span class="t"><strong>Manage everything by chat</strong> — add products, update stock, run promotions, upload photos, all through WhatsApp.</span></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>BusinessPulse — digital storefronts for every business, powered entirely by WhatsApp.</footer>
+</div>
+
+<!-- ============ NOT FOUND ============ -->
+<div id="notfound" hidden>
+  <div class="box">
+    <div class="glyph">🔎</div>
+    <h1>Business not found</h1>
+    <p id="notfound-detail">We couldn't find a storefront at this address. It may have been removed, or the link might be mistyped.</p>
+    <form class="search-box" id="notfound-search-form">
+      <input type="text" id="notfound-search-input" placeholder="Search for another business…" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <div class="search-results" id="notfound-search-results"></div>
+    <p style="margin-top:18px;"><a class="link-home" href="/">← Return to homepage</a></p>
+  </div>
+</div>
+
+<!-- ============ STORE ============ -->
+<div id="store" hidden>
+  <div class="hero">
+    <div class="hero-top">
+      <span class="brand-badge">On Pulse</span>
+      <span id="verified-pill" class="verified-pill" hidden>✓ Verified</span>
+    </div>
+    <div id="cover-wrap" class="cover-wrap empty"><span>No cover photo yet</span></div>
+  </div>
+
+  <div class="identity">
+    <div id="logo" class="logo">–</div>
+    <div>
+      <h1 id="biz-name"></h1>
+      <div class="meta" id="biz-meta"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <section class="about" id="about-section" hidden>
+      <div class="section-head"><h2>About</h2></div>
+      <p id="biz-desc"></p>
+    </section>
+
+    <section id="info-section">
+      <div class="section-head"><h2>Details</h2></div>
+      <div class="info-grid" id="info-grid"></div>
+    </section>
+
+    <section id="gallery-section" hidden>
+      <div class="section-head"><h2>Photos</h2></div>
+      <div class="gallery" id="gallery"></div>
+    </section>
+
+    <section id="promo-section" hidden>
+      <div class="section-head"><h2>Promotions</h2></div>
+      <div id="promo-list"></div>
+    </section>
+
+    <section id="products-section">
+      <div class="section-head"><h2>Products</h2></div>
+      <div class="grid" id="products-grid"></div>
+    </section>
+
+    <section id="services-section" hidden>
+      <div class="section-head"><h2>Services</h2></div>
+      <div class="grid" id="services-grid"></div>
+    </section>
+
+    <footer>Powered by BusinessPulse — this storefront updates automatically from WhatsApp.</footer>
+  </div>
+</div>
+
+<div class="cta-bar" id="cta-bar" hidden>
+  <a id="whatsapp-link" href="#" target="_blank" rel="noopener">Message on WhatsApp →</a>
+</div>
+
+<script>
+  // ---- Configuration ----
+  const SUPABASE_URL = "https://xvnvipgqwtewcbmiqjae.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2bnZpcGdxd3Rld2NibWlxamFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMDU0NTksImV4cCI6MjA5ODY4MTQ1OX0.jVxU2wW0I_wnDpxM-gXDKVhVe6SVi8DzRIurli_uDAM";
+  // TODO: replace with the real inbound WhatsApp Business number connected to the
+  // whatsapp-bot Edge Function (the number people message to reach the bot).
+  // This is a placeholder and the Register button will not reach a real bot until updated.
+  const PULSE_WHATSAPP_NUMBER = "2347081681746";
+
+  const cart = new Map(); // itemId -> {name, price, kind}
+  let currentStore = null;
+
+  function escapeAttr(s){
+    return String(s ?? "").replace(/"/g, "&quot;");
+  }
+
+  function moneyNGN(n){
+    if (n === null || n === undefined) return "";
+    return "₦" + Number(n).toLocaleString("en-NG");
+  }
+
+  // Root = landing. Anything else = the first path segment is the business slug.
+  // (Backward-compatible with the old ?store=slug and /store/slug shapes too.)
+  function getSlug(){
+    const path = window.location.pathname.replace(/^\/|\/$/g, "");
+    if (!path) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get("store"); // null => landing page
+    }
+    const parts = path.split("/");
+    if (parts[0] === "store" && parts[1]) return decodeURIComponent(parts[1]);
+    return decodeURIComponent(parts[0]);
+  }
+
+  async function searchBusinesses(query){
+    if (!query || !query.trim()) return [];
+    const q = query.trim().replace(/[%,]/g, "");
+    const url = `${SUPABASE_URL}/rest/v1/public_storefronts?or=(name.ilike.*${encodeURIComponent(q)}*,slug.ilike.*${encodeURIComponent(q)}*)&select=name,slug,category,city&limit=8`;
+    const res = await fetch(url, { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } });
+    if (!res.ok) return [];
+    return res.json();
+  }
+
+  function renderSearchResults(container, results){
+    if (!results.length){
+      container.innerHTML = `<div class="search-empty">No businesses found. Try a different name.</div>`;
+      return;
+    }
+    container.innerHTML = results.map(r => `
+      <a class="search-result" href="/${encodeURIComponent(r.slug)}">
+        <span>
+          <span class="r-name">${r.name}</span><br>
+          <span class="r-meta">${[r.category, r.city].filter(Boolean).join(" · ")}</span>
+        </span>
+        <span>→</span>
+      </a>
+    `).join("");
+  }
+
+  function wireSearch(formId, inputId, resultsId){
+    const form = document.getElementById(formId);
+    const input = document.getElementById(inputId);
+    const results = document.getElementById(resultsId);
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      results.innerHTML = `<div class="search-empty">Searching…</div>`;
+      const found = await searchBusinesses(input.value);
+      renderSearchResults(results, found);
+    });
+  }
+
+  function showOnly(id){
+    ["state-msg","landing","notfound","store"].forEach(x => {
+      document.getElementById(x).hidden = (x !== id);
+    });
+  }
+
+  async function init(){
+    const slug = getSlug();
+
+    // Register CTA — opens WhatsApp with the REGISTER trigger pre-filled.
+    document.getElementById("register-cta").href =
+      `https://wa.me/${PULSE_WHATSAPP_NUMBER}?text=${encodeURIComponent("REGISTER")}`;
+
+    wireSearch("landing-search-form", "landing-search-input", "landing-search-results");
+    wireSearch("notfound-search-form", "notfound-search-input", "notfound-search-results");
+
+    document.getElementById("store").addEventListener("click", (e) => {
+      const btn = e.target.closest(".add-btn");
+      if (btn) toggleCartItem(btn);
+    });
+
+    if (!slug){
+      showOnly("landing");
+      return;
+    }
+
+    showOnly("state-msg");
+    document.getElementById("state-msg").textContent = "Loading storefront…";
+
+    try{
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/public_storefronts?slug=eq.${encodeURIComponent(slug)}&select=*`,
+        { headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` } }
+      );
+      if (!res.ok) throw new Error("Request failed: " + res.status);
+      const rows = await res.json();
+      if (!rows.length){
+        showOnly("notfound");
+        return;
+      }
+      renderStore(rows[0]);
+      showOnly("store");
+    } catch (err){
+      console.error(err);
+      showOnly("state-msg");
+      document.getElementById("state-msg").textContent = "Couldn't load this storefront right now. Please try again shortly.";
+    }
+  }
+
+  function renderStore(store){
+    currentStore = store;
+    document.title = `${store.name} · BusinessPulse`;
+
+    const coverWrap = document.getElementById("cover-wrap");
+    if (store.cover_photo_url){
+      coverWrap.classList.remove("empty");
+      coverWrap.innerHTML = `<img src="${store.cover_photo_url}" alt="${store.name} cover photo" loading="lazy">`;
+    }
+
+    const logo = document.getElementById("logo");
+    if (store.logo_url){
+      logo.innerHTML = `<img src="${store.logo_url}" alt="${store.name} logo" loading="lazy">`;
+    } else {
+      logo.textContent = (store.name || "?").trim().charAt(0).toUpperCase();
+    }
+
+    if (store.trust_status === "verified"){
+      document.getElementById("verified-pill").hidden = false;
+    }
+
+    document.getElementById("biz-name").textContent = store.name || "";
+    const metaBits = [store.category, store.city].filter(Boolean)
+      .map(s => s.charAt(0).toUpperCase() + s.slice(1));
+    document.getElementById("biz-meta").textContent = metaBits.join(" · ");
+
+    const desc = store.description || store.bio;
+    if (desc){
+      document.getElementById("about-section").hidden = false;
+      document.getElementById("biz-desc").textContent = desc;
+    }
+
+    const infoRows = [];
+    if (store.address) infoRows.push(["Address", store.address]);
+    if (store.location_text) infoRows.push(["Location", store.location_text]);
+    if (store.opening_hours) infoRows.push(["Hours", store.opening_hours]);
+    if (store.contact_phone) infoRows.push(["Phone", store.contact_phone]);
+    if (store.contact_email) infoRows.push(["Email", store.contact_email]);
+    const infoGrid = document.getElementById("info-grid");
+    if (infoRows.length){
+      infoGrid.innerHTML = infoRows.map(([k,v]) => `<div class="info-row"><span class="k">${k}</span><span>${v}</span></div>`).join("");
+    } else {
+      document.getElementById("info-section").hidden = true;
+    }
+
+    const photos = store.photos || [];
+    if (photos.length){
+      document.getElementById("gallery-section").hidden = false;
+      document.getElementById("gallery").innerHTML = photos.map(p => `<img src="${p.url}" alt="${p.caption || store.name}" loading="lazy">`).join("");
+    }
+
+    const promos = store.promotions || [];
+    if (promos.length){
+      document.getElementById("promo-section").hidden = false;
+      document.getElementById("promo-list").innerHTML = promos.map(p => `
+        <div class="promo">
+          <div class="promo-title">${p.title}</div>
+          ${p.discount_text ? `<div class="promo-discount">${p.discount_text}</div>` : ""}
+        </div>
+      `).join("");
+    }
+
+    const products = store.products || [];
+    const productsGrid = document.getElementById("products-grid");
+    if (products.length){
+      productsGrid.innerHTML = products.map(p => `
+        <div class="card" data-item-id="${p.id}">
+          <p class="name">${p.name}</p>
+          <span class="price-tag mono">${moneyNGN(p.price)}</span>
+          ${p.stock !== null && p.stock !== undefined ? `<div class="stock">${p.stock} ${p.unit || "unit"} in stock</div>` : ""}
+          <div class="add-row">
+            <button class="add-btn" data-id="${p.id}" data-kind="product" data-name="${escapeAttr(p.name)}" data-price="${p.price ?? ""}">+ Add to order</button>
+          </div>
+        </div>
+      `).join("");
+    } else {
+      productsGrid.innerHTML = `<div class="empty-note" style="grid-column:1/-1">No products listed yet — check back soon.</div>`;
+    }
+
+    const services = store.services || [];
+    if (services.length){
+      document.getElementById("services-section").hidden = false;
+      document.getElementById("services-grid").innerHTML = services.map(s => `
+        <div class="card" data-item-id="${s.id}">
+          <p class="name">${s.name}</p>
+          <span class="price-tag mono">${moneyNGN(s.price)}</span>
+          <div class="add-row">
+            <button class="add-btn" data-id="${s.id}" data-kind="service" data-name="${escapeAttr(s.name)}" data-price="${s.price ?? ""}">+ Add to order</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    if (store.whatsapp_number){
+      document.getElementById("cta-bar").hidden = false;
+      document.body.classList.add("has-cta");
+    }
+    cart.clear();
+    updateCtaBar();
+  }
+
+  function updateCtaBar(){
+    if (!currentStore || !currentStore.whatsapp_number) return;
+    const waLink = document.getElementById("whatsapp-link");
+    const items = Array.from(cart.values());
+
+    if (!items.length){
+      const text = `Hi ${currentStore.name}, I found you on your storefront and I'd like to ask about...`;
+      waLink.textContent = "Message on WhatsApp →";
+      waLink.href = `https://wa.me/${currentStore.whatsapp_number}?text=${encodeURIComponent(text)}`;
+      return;
+    }
+
+    const lines = items.map(i => `- ${i.name}${i.price ? ` (${moneyNGN(i.price)})` : ""}`);
+    const text = `Hi ${currentStore.name}, I'd like to order:\n${lines.join("\n")}\n\nPlease confirm availability and total. Thanks!`;
+    waLink.textContent = `Send Order (${items.length}) →`;
+    waLink.href = `https://wa.me/${currentStore.whatsapp_number}?text=${encodeURIComponent(text)}`;
+  }
+
+  function toggleCartItem(btn){
+    const id = btn.dataset.id;
+    const card = btn.closest(".card");
+    if (cart.has(id)){
+      cart.delete(id);
+      btn.textContent = "+ Add to order";
+      btn.classList.remove("is-selected");
+      card?.classList.remove("selected");
+    } else {
+      cart.set(id, { name: btn.dataset.name, price: btn.dataset.price ? Number(btn.dataset.price) : null, kind: btn.dataset.kind });
+      btn.textContent = "✓ Added";
+      btn.classList.add("is-selected");
+      card?.classList.add("selected");
+    }
+    updateCtaBar();
+  }
+
+  init();
+</script>
+</body>
+</html>
