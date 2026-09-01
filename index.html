@@ -120,12 +120,12 @@
   #store .hero{background:linear-gradient(180deg, var(--board) 0%, var(--board-2) 100%);color:var(--paper);padding:28px 20px 64px;position:relative;}
   #store .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;}
   .brand-badge{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);opacity:.85;}
-  .verified-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;background:rgba(242,169,59,.15);color:var(--gold);border:1px solid rgba(242,169,59,.4);padding:4px 10px;border-radius:999px;}
+  .verified-pill{display:inline-flex;align-items:center;gap:5px;font-size:11px;letter-spacing:.05em;text-transform:uppercase;background:rgba(242,169,59,.15);color:var(--gold);border:1px solid rgba(242,169,59,.4);border-radius:999px;padding:3px 9px;}
   .cover-wrap{margin-top:18px;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/9;background:var(--board-2);box-shadow:var(--shadow);}
   .cover-wrap img{width:100%;height:100%;object-fit:cover;}
   .cover-wrap.empty{display:flex;align-items:center;justify-content:center;color:rgba(251,247,238,.35);font-size:13px;}
   .identity{margin-top:-44px;padding:0 20px;position:relative;z-index:2;display:flex;align-items:flex-end;gap:14px;}
-  .logo{width:84px;height:84px;border-radius:16px;background:var(--paper);border:4px solid var(--paper);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:28px;font-weight:700;color:var(--board);flex-shrink:0;}
+  .logo{width:84px;height:84px;border-radius:16px;background:var(--paper);border:4px solid var(--paper);box-shadow:var(--shadow);display:flex;align-items:center;justify-content:center;overflow:hidden;}
   .logo img{width:100%;height:100%;object-fit:cover;}
   .identity h1{margin:0 0 2px;font-size:clamp(24px,6vw,32px);font-weight:600;color:var(--ink);letter-spacing:-0.01em;}
   .identity .meta{font-size:13px;color:var(--ink-soft);}
@@ -279,8 +279,8 @@
 
 <script>
   // ---- Configuration ----
-  const SUPABASE_URL = "https://xvnvipgqwtewcbmiqjae.supabase.co";
-  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh2bnZpcGdxd3Rld2NibWlxamFlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMxMDU0NTksImV4cCI6MjA5ODY4MTQ1OX0.jVxU2wW0I_wnDpxM-gXDKVhVe6SVi8DzRIurli_uDAM";
+  const SUPABASE_URL = "https://jmltamnqlqewwsqvcvme.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImptbHRhbW5xbHFld3dzcXZjdm1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMwMDk4MzEsImV4cCI6MjA5ODU4NTgzMX0.eP4ZQUqvfYOaSHSA06ogG-KHQVNNGAWIdAMgqunO0hw";
   // TODO: replace with the real inbound WhatsApp Business number connected to the
   // whatsapp-bot Edge Function (the number people message to reach the bot).
   // This is a placeholder and the Register button will not reach a real bot until updated.
