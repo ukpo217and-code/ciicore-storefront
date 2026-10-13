@@ -165,6 +165,21 @@
   .cta-bar a{display:flex;align-items:center;gap:8px;justify-content:center;background:var(--gold);color:var(--board);font-weight:700;font-size:15px;border-radius:999px;padding:12px 22px;width:100%;max-width:600px;text-decoration:none;}
   #store footer{margin-top:48px;padding:24px 20px;text-align:center;font-size:12px;color:var(--ink-soft);}
 
+
+  /* ============ CHECKOUT ============ */
+  .checkout-overlay{position:fixed;inset:0;z-index:1000;background:rgba(10,18,35,.72);display:flex;align-items:center;justify-content:center;padding:16px;}
+  .checkout-panel{background:var(--paper);border-radius:16px;width:100%;max-width:480px;max-height:92vh;overflow:auto;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.3);}
+  .checkout-panel h2{margin:0 0 6px;font-size:23px;}
+  .checkout-panel p{margin:0 0 16px;color:var(--ink-soft);font-size:13px;}
+  .checkout-form{display:grid;gap:12px;}
+  .checkout-form label{display:grid;gap:5px;font-size:13px;font-weight:600;}
+  .checkout-form input,.checkout-form textarea,.checkout-form select{width:100%;border:1px solid var(--line);border-radius:9px;padding:11px;background:#fff;color:var(--ink);font-size:15px;}
+  .checkout-actions{display:flex;gap:8px;margin-top:8px;}
+  .checkout-actions button,.checkout-actions a{flex:1;text-align:center;border:0;border-radius:999px;padding:12px;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;}
+  .checkout-submit{background:var(--board);color:var(--gold);}
+  .checkout-cancel{background:#eee6d8;color:var(--ink);}
+  #checkout-status{font-size:14px;margin-top:12px;white-space:pre-wrap;}
+  #checkout-whatsapp{display:block;margin-top:12px;background:#1e7b49;color:#fff;text-align:center;padding:12px;border-radius:999px;text-decoration:none;font-weight:700;}
   @media (prefers-reduced-motion:no-preference){ .card, .promo, .gallery img{transition:transform .18s ease;} .card:hover{transform:translateY(-2px);} }
   @media (prefers-reduced-motion:reduce){ .gallery img{transform:none !important;} }
 </style>
@@ -277,6 +292,26 @@
   <a id="whatsapp-link" href="#" target="_blank" rel="noopener">Message on WhatsApp →</a>
 </div>
 
+<div id="checkout-overlay" class="checkout-overlay" hidden>
+  <div class="checkout-panel" role="dialog" aria-modal="true" aria-labelledby="checkout-title">
+    <h2 id="checkout-title">Complete your order</h2>
+    <p id="checkout-summary">Your cart will be checked against current prices and stock before the order is saved.</p>
+    <form id="checkout-form" class="checkout-form">
+      <label>Your name<input name="name" required maxlength="120" autocomplete="name" placeholder="Full name"></label>
+      <label>Phone number<input name="phone" required maxlength="40" autocomplete="tel" placeholder="e.g. 080… or +234…"></label>
+      <label>Fulfilment<select name="delivery_method" required><option value="pickup">Pickup</option><option value="delivery">Delivery</option></select></label>
+      <label>Location (optional)<input name="location" maxlength="300" autocomplete="street-address" placeholder="Area, town or delivery address"></label>
+      <label>Note (optional)<textarea name="note" maxlength="500" rows="2" placeholder="Size, colour or delivery instructions"></textarea></label>
+      <div class="checkout-actions">
+        <button class="checkout-submit" id="checkout-submit" type="submit">Place order</button>
+        <button class="checkout-cancel" id="checkout-cancel" type="button">Cancel</button>
+      </div>
+    </form>
+    <div id="checkout-status" role="status" aria-live="polite"></div>
+    <a id="checkout-whatsapp" href="#" target="_blank" rel="noopener" hidden>Send order details on WhatsApp</a>
+  </div>
+</div>
+
 <script>
   // ---- Configuration ----
   const SUPABASE_URL = "https://jmltamnqlqewwsqvcvme.supabase.co";
@@ -288,6 +323,8 @@
 
   const cart = new Map(); // itemId -> {name, price, kind}
   let currentStore = null;
+  let checkoutKey = null;
+  let checkoutBusy = false;
 
   function escapeAttr(s){
     return String(s ?? "").replace(/"/g, "&quot;");
@@ -368,6 +405,27 @@
       const btn = e.target.closest(".add-btn");
       if (btn) toggleCartItem(btn);
     });
+
+    document.getElementById("whatsapp-link").addEventListener("click", (e) => {
+      if (!cart.size) return;
+      e.preventDefault();
+      if (Array.from(cart.values()).some(item => item.kind !== "product")) {
+        alert("Online checkout currently supports listed products. Please enquire about services directly on WhatsApp.");
+        return;
+      }
+      checkoutKey = checkoutKey || newCheckoutKey();
+      document.getElementById("checkout-form").hidden = false;
+      document.getElementById("checkout-status").textContent = "";
+      document.getElementById("checkout-whatsapp").hidden = true;
+      document.getElementById("checkout-submit").disabled = false;
+      document.getElementById("checkout-overlay").hidden = false;
+    });
+
+    document.getElementById("checkout-cancel").addEventListener("click", closeCheckout);
+    document.getElementById("checkout-overlay").addEventListener("click", (e) => {
+      if (e.target.id === "checkout-overlay" && !checkoutBusy) closeCheckout();
+    });
+    document.getElementById("checkout-form").addEventListener("submit", submitCheckout);
 
     if (!slug){
       showOnly("landing");
@@ -498,6 +556,78 @@
     updateCtaBar();
   }
 
+  function newCheckoutKey(){
+    if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID().replace(/-/g, "");
+    return "bp" + Date.now().toString(36) + Math.random().toString(36).slice(2, 24);
+  }
+
+  function closeCheckout(){
+    if (checkoutBusy) return;
+    document.getElementById("checkout-overlay").hidden = true;
+  }
+
+  async function submitCheckout(event){
+    event.preventDefault();
+    if (checkoutBusy || !currentStore) return;
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const customer = {
+      name: String(formData.get("name") || "").trim(),
+      phone: String(formData.get("phone") || "").trim(),
+      location: String(formData.get("location") || "").trim(),
+      note: String(formData.get("note") || "").trim()
+    };
+    const items = Array.from(cart.entries()).map(([product_id]) => ({product_id, quantity: 1}));
+    if (!items.length) {
+      document.getElementById("checkout-status").textContent = "Your cart is empty.";
+      return;
+    }
+    checkoutBusy = true;
+    const submit = document.getElementById("checkout-submit");
+    submit.disabled = true;
+    submit.textContent = "Saving order…";
+    document.getElementById("checkout-status").textContent = "Checking availability and saving your order securely…";
+    document.getElementById("checkout-whatsapp").hidden = true;
+    try{
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/commerce-checkout-v2`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json", "apikey":SUPABASE_ANON_KEY, "Authorization":`Bearer ${SUPABASE_ANON_KEY}`},
+        body: JSON.stringify({
+          storefront_slug: currentStore.slug,
+          customer,
+          delivery_method: formData.get("delivery_method"),
+          items,
+          idempotency_key: checkoutKey || (checkoutKey = newCheckoutKey())
+        })
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(result.error || "We couldn't save this order. Please try again.");
+      const order = result.order || {};
+      document.getElementById("checkout-form").hidden = true;
+      document.getElementById("checkout-status").textContent =
+        `Order saved successfully.\nOrder reference: ${order.order_code || order.order_id || "created"}\nTotal: ${moneyNGN(order.total)}\nStatus: ${order.status || "new"}\n\n${result.whatsapp_status || "Your order is recorded."}`;
+      if (result.whatsapp_url) {
+        const link = document.getElementById("checkout-whatsapp");
+        link.href = result.whatsapp_url;
+        link.hidden = false;
+      }
+      checkoutKey = null;
+      cart.clear();
+      document.querySelectorAll(".add-btn.is-selected").forEach(btn => {
+        btn.classList.remove("is-selected");
+        btn.textContent = "+ Add to order";
+        btn.closest(".card")?.classList.remove("selected");
+      });
+      updateCtaBar();
+    }catch(err){
+      document.getElementById("checkout-status").textContent = err.message || "Checkout failed. Please try again.";
+      submit.disabled = false;
+    }finally{
+      checkoutBusy = false;
+      submit.textContent = "Place order";
+    }
+  }
+
   function updateCtaBar(){
     if (!currentStore || !currentStore.whatsapp_number) return;
     const waLink = document.getElementById("whatsapp-link");
@@ -521,11 +651,13 @@
     const card = btn.closest(".card");
     if (cart.has(id)){
       cart.delete(id);
+      checkoutKey = null;
       btn.textContent = "+ Add to order";
       btn.classList.remove("is-selected");
       card?.classList.remove("selected");
     } else {
       cart.set(id, { name: btn.dataset.name, price: btn.dataset.price ? Number(btn.dataset.price) : null, kind: btn.dataset.kind });
+      checkoutKey = null;
       btn.textContent = "✓ Added";
       btn.classList.add("is-selected");
       card?.classList.add("selected");
